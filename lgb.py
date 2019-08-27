@@ -46,7 +46,7 @@ params = {
     'objective': 'binary',  # 目标函数
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
-    'num_leaves': 18,  # 叶子节点数
+    'num_leaves': 36,  # 叶子节点数
     'learning_rate': 0.1,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
@@ -57,8 +57,11 @@ params = {
 gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
+print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=True)
-lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=30, n_jobs=4, random_state=321)
+
+print('lr training...')
+lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=1000, n_jobs=1, random_state=321)
 lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
