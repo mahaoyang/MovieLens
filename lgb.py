@@ -54,14 +54,14 @@ params = {
     'top_k': 20,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=100, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=True)
 
 print('lr training...')
-lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=1000, n_jobs=1, random_state=321)
+lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')

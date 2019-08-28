@@ -7,7 +7,7 @@ import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegressionCV
 from deepctr.models import DeepFM
-from deepctr.inputs import SparseFeat, get_fixlen_feature_names
+from deepctr.inputs import SparseFeat, get_fixlen_feature_names, DenseFeat
 
 from lgb_util import *
 
@@ -66,20 +66,26 @@ print('deep training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 # lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
-fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
-                          for feat in x.columns]
+lgb_feat = pd.DataFrame(lgb_pred.tolist())
+lgb_feat.columns = [str(i) for i in lgb_feat.columns]
+fixlen_feature_columns = [SparseFeat(feat, lgb_feat[feat].nunique())
+                          for feat in lgb_feat.columns]
 linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
-train_model_input = [x_train[name].values for name in fixlen_feature_names]
+train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='regression')
 model.compile("adam", "mse", metrics=['mse'], )
-history = model.fit(lgb_pred, y_train.values,
+history = model.fit(train_model_input, y_train.values,
                     batch_size=256, epochs=100, verbose=2, validation_split=0.2, )
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
-y_pred = lr_cv.predict(lgb_pred.tolist())
+# y_pred = lr_cv.predict(lgb_pred.tolist())
+
+lgb_feat = pd.DataFrame(lgb_pred.tolist())
+lgb_feat.columns = [str(i) for i in lgb_feat.columns]
+y_pred = model.predict(lgb_feat)
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
