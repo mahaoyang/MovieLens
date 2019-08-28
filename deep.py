@@ -49,7 +49,7 @@ params = {
     'objective': 'binary',  # 目标函数
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
-    'num_leaves': 300,  # 叶子节点数
+    'num_leaves': 1000,  # 叶子节点数
     'learning_rate': 0.1,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
@@ -76,7 +76,7 @@ dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
 train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
-model.compile("adam", loss=losses.binary_crossentropy, metrics=['accuracy', 'mse'], )
+model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
 
