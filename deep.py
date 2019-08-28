@@ -79,6 +79,10 @@ model.compile("adam", "mse", metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=1, verbose=2, validation_split=0.9, )
 
+deep_pred = model.predict(train_model_input, batch_size=20480)
+lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
+lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
+
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 # y_pred = lr_cv.predict(lgb_pred.tolist())
@@ -86,7 +90,8 @@ lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 lgb_feat = pd.DataFrame(lgb_pred.tolist())
 lgb_feat.columns = [str(i) for i in lgb_feat.columns]
 lgb_feat = [lgb_feat[name] for name in fixlen_feature_names]
-y_pred = model.predict(lgb_feat, batch_size=10240)
+deep_pred = model.predict(lgb_feat, batch_size=10240)
+y_pred = lr_cv.predict(deep_pred.tolist())
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
