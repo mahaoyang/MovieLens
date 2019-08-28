@@ -74,10 +74,10 @@ linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
 train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
-model = DeepFM(linear_feature_columns, dnn_feature_columns, task='regression')
-model.compile("adam", "mse", metrics=['mse'], )
+model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
+model.compile("adam", "mse", metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=128, epochs=20, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=20, verbose=2, validation_split=0.2, )
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
