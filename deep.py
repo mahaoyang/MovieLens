@@ -77,7 +77,7 @@ train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", "mse", metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=20480, epochs=2, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=1, verbose=2, validation_split=0.9, )
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
@@ -85,7 +85,7 @@ lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 
 lgb_feat = pd.DataFrame(lgb_pred.tolist())
 lgb_feat.columns = [str(i) for i in lgb_feat.columns]
-lgb_feat = [i for i in lgb_feat.iterrows()]
+lgb_feat = [i for i in lgb_feat.iteritems()]
 y_pred = model.predict(lgb_feat, batch_size=10240)
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
