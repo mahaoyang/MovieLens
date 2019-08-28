@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegressionCV
+from keras import losses
 from deepctr.models import DeepFM
 from deepctr.inputs import SparseFeat, get_fixlen_feature_names, DenseFeat
 
@@ -75,7 +76,7 @@ dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
 train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
-model.compile("adam", "mse", metrics=['accuracy', 'mse'], )
+model.compile("adam", loss=losses.binary_crossentropy, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
 
