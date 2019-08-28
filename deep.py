@@ -85,7 +85,7 @@ lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 
 lgb_feat = pd.DataFrame(lgb_pred.tolist())
 lgb_feat.columns = [str(i) for i in lgb_feat.columns]
-lgb_feat = [i for i in lgb_feat.iteritems()]
+lgb_feat = [i[1] for i in lgb_feat.iteritems()]
 y_pred = model.predict(lgb_feat, batch_size=10240)
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
