@@ -31,13 +31,17 @@ ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
-for i in ratings.columns:
-    ratings[i] = LabelEncoder().fit_transform(ratings[i])
 
 print('data processing...')
 x = ratings.drop(columns='rating')
 y = ratings['rating']
 x.columns = [str(i) for i in range(len(x.columns))]
+sparse_features = [str(i) for i in range(8, len(x.columns))]
+dense_features = [str(i) for i in range(8)]
+for i in sparse_features:
+    x[i] = LabelEncoder().fit_transform(x[i])
+mms = MinMaxScaler(feature_range=(0, 1))
+x[dense_features] = mms.fit_transform(x[dense_features])
 fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
                           for feat in x.columns]
 linear_feature_columns = fixlen_feature_columns
