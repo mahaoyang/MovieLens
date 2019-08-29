@@ -75,7 +75,7 @@ linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
 train_model_input = [lgb_feat[name] for name in fixlen_feature_names]
-model = FiBiNET(linear_feature_columns, dnn_feature_columns, task='binary')
+model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=1024, epochs=3, verbose=2, validation_split=0.2, )
@@ -94,5 +94,6 @@ lgb_feat = [lgb_feat[name] for name in fixlen_feature_names]
 deep_pred = model.predict(lgb_feat, batch_size=10240)
 y_pred = lr_cv.predict(deep_pred.tolist())
 
+print(y_pred)
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
