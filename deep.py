@@ -38,10 +38,10 @@ y = ratings['rating']
 x.columns = [str(i) for i in range(len(x.columns))]
 sparse_features = [str(i) for i in range(8, len(x.columns))]
 dense_features = [str(i) for i in range(8)]
-for i in sparse_features:
+for i in x.columns:
     x[i] = LabelEncoder().fit_transform(x[i])
 mms = MinMaxScaler(feature_range=(0, 1))
-x[dense_features] = mms.fit_transform(x[dense_features])
+x[dense_features] = mms.fit_transform(x[dense_features].astype('int32'))
 fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
                           for feat in sparse_features] + [DenseFeat(feat, 1, )
                                                           for feat in dense_features]
