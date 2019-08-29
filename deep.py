@@ -43,7 +43,8 @@ for i in sparse_features:
 mms = MinMaxScaler(feature_range=(0, 1))
 x[dense_features] = mms.fit_transform(x[dense_features])
 fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
-                          for feat in x.columns]
+                          for feat in sparse_features] + [DenseFeat(feat, 1, )
+                                                          for feat in dense_features]
 linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
