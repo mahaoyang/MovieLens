@@ -43,6 +43,7 @@ print('start training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 # lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
+x_train = x_train.reset_index(drop=True)
 x_train.columns = [str(i) for i in range(len(x_train.columns))]
 fixlen_feature_columns = [SparseFeat(feat, x_train[feat].nunique())
                           for feat in x_train.columns]
@@ -53,7 +54,7 @@ train_model_input = [x_train[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=40960, epochs=3, verbose=2, validation_split=0.2, )
+                    batch_size=4096, epochs=3, verbose=2, validation_split=0.2, )
 
 deep_pred = model.predict(train_model_input, batch_size=20480)
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -62,6 +63,7 @@ lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
 print('start predicting...')
 # y_pred = lr_cv.predict(lgb_pred.tolist())
 
+x_test = x_test.reset_index(drop=True)
 x_test.columns = [str(i) for i in range(len(x_test.columns))]
 feat = [x_test[name] for name in fixlen_feature_names]
 deep_pred = model.predict(feat, batch_size=10240)
