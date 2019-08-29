@@ -31,20 +31,23 @@ ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
-
+for i in ratings.columns:
+    ratings[i] = LabelEncoder().fit_transform(ratings[i])
 print('data processing...')
 x = ratings.drop(columns='rating')
 y = ratings['rating']
 x.columns = [str(i) for i in range(len(x.columns))]
-sparse_features = [str(i) for i in range(8, len(x.columns))]
-dense_features = [str(i) for i in range(8)]
-for i in x.columns:
-    x[i] = LabelEncoder().fit_transform(x[i])
-mms = MinMaxScaler(feature_range=(0, 1))
-x[dense_features] = mms.fit_transform(x[dense_features].astype('int32'))
+# sparse_features = [str(i) for i in range(8, len(x.columns))]
+# dense_features = [str(i) for i in range(8)]
+# for i in x.columns:
+#     x[i] = LabelEncoder().fit_transform(x[i])
+# mms = MinMaxScaler(feature_range=(0, 1))
+# x[dense_features] = mms.fit_transform(x[dense_features].astype('int32'))
+# fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
+#                           for feat in sparse_features] + [DenseFeat(feat, 1, )
+#                                                           for feat in dense_features]
 fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
-                          for feat in sparse_features] + [DenseFeat(feat, 1, )
-                                                          for feat in dense_features]
+                          for feat in x.columns]
 linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
@@ -58,7 +61,7 @@ print('start training...')
 # y_train = y_train.reset_index(drop=True)
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
-model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
+model = PNN(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
