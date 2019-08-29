@@ -43,6 +43,7 @@ print('start training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 # lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
+x_train.columns = [str(i) for i in range(len(x_train.columns))]
 fixlen_feature_columns = [SparseFeat(feat, x_train[feat].nunique())
                           for feat in x_train.columns]
 linear_feature_columns = fixlen_feature_columns
@@ -61,10 +62,9 @@ lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
 print('start predicting...')
 # y_pred = lr_cv.predict(lgb_pred.tolist())
 
-
-x_test.columns = [str(i) for i in x_test.columns]
-lgb_feat = [x_test[name] for name in fixlen_feature_names]
-deep_pred = model.predict(lgb_feat, batch_size=10240)
+x_test.columns = [str(i) for i in range(len(x_test.columns))]
+feat = [x_test[name] for name in fixlen_feature_names]
+deep_pred = model.predict(feat, batch_size=10240)
 y_pred = lr_cv.predict(deep_pred.tolist())
 
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
