@@ -28,7 +28,7 @@ movies_genres.columns = list(genres.keys())
 movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 3 else 1)
+ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
 for i in ratings.columns:
