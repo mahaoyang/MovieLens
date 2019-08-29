@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score
@@ -30,31 +30,33 @@ movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(col
 ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
-ratings = pd.merge(ratings, movies, how='left', on='movie_id')
+ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
 for i in ratings.columns:
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
 
 print('data processing...')
 x = ratings.drop(columns='rating')
 y = ratings['rating']
+x.columns = [str(i) for i in range(len(x.columns))]
+fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
+                          for feat in x.columns]
+linear_feature_columns = fixlen_feature_columns
+dnn_feature_columns = fixlen_feature_columns
+fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
 print('start training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 # lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
-x_train = x_train.reset_index(drop=True)
-x_train.columns = [str(i) for i in range(len(x_train.columns))]
-fixlen_feature_columns = [SparseFeat(feat, x_train[feat].nunique())
-                          for feat in x_train.columns]
-linear_feature_columns = fixlen_feature_columns
-dnn_feature_columns = fixlen_feature_columns
-fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
+# x_train = x_train.reset_index(drop=True)
+# y_train = y_train.reset_index(drop=True)
+
 train_model_input = [x_train[name] for name in fixlen_feature_names]
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=4096, epochs=3, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
 
 deep_pred = model.predict(train_model_input, batch_size=20480)
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -63,7 +65,8 @@ lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
 print('start predicting...')
 # y_pred = lr_cv.predict(lgb_pred.tolist())
 
-x_test = x_test.reset_index(drop=True)
+# x_test = x_test.reset_index(drop=True)
+# y_test = y_test.reset_index(drop=True)
 x_test.columns = [str(i) for i in range(len(x_test.columns))]
 feat = [x_test[name] for name in fixlen_feature_names]
 deep_pred = model.predict(feat, batch_size=10240)
