@@ -94,6 +94,6 @@ lgb_feat = [lgb_feat[name] for name in fixlen_feature_names]
 deep_pred = model.predict(lgb_feat, batch_size=10240)
 y_pred = lr_cv.predict(deep_pred.tolist())
 
-print(y_pred)
+print(y_pred.tolist())
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
