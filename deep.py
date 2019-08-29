@@ -40,8 +40,6 @@ y = ratings['rating']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
 print('start training...')
-
-print('deep training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 # lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
