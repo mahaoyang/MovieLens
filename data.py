@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
@@ -31,5 +32,8 @@ ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
-count = ratings.value_counts()
+count = [ratings[i].value_counts() for i in ratings.columns]
+for i in count:
+    i.plot.bar(figsize=(6, 6))
+    plt.show()
 print()
