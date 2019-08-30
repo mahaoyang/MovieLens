@@ -50,7 +50,7 @@ params = {
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
     'num_leaves': 10,  # 叶子节点数
-    'learning_rate': 0.1,  # 学习速率
+    'learning_rate': 0.5,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
     'bagging_freq': 10,  # k 意味着每 k 次迭代执行bagging
