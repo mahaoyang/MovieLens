@@ -51,7 +51,7 @@ fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
 linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
 fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.5, random_state=321)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
 print('start training...')
 # lr_cv = LogisticRegressionCV(Cs=10, cv=10, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -61,7 +61,7 @@ print('start training...')
 # y_train = y_train.reset_index(drop=True)
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
-model = WDL(linear_feature_columns, dnn_feature_columns, task='binary')
+model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
