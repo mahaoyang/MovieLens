@@ -61,7 +61,7 @@ print('start training...')
 # y_train = y_train.reset_index(drop=True)
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
-model = AFM(linear_feature_columns, dnn_feature_columns, task='binary')
+model = WDL(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )

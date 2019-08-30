@@ -67,7 +67,7 @@ lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=
 lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
-lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
+lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=False)
 lgb_pred = lgb_pred.reshape((-1, 1))
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
