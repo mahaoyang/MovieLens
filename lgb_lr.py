@@ -47,14 +47,14 @@ params = {
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
     'num_leaves': 36,  # 叶子节点数
-    'learning_rate': 0.1,  # 学习速率
+    'learning_rate': 0.3,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
     'bagging_freq': 10,  # k 意味着每 k 次迭代执行bagging
     'top_k': 20,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=100, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=10, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
@@ -66,6 +66,7 @@ lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
+print(lgb_pred.shape)
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))

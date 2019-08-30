@@ -59,7 +59,6 @@ gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=False)
-print(lgb_pred.shape)
 lgb_pred = lgb_pred.reshape((-1, 1))
 
 print('lr training...')

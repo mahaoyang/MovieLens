@@ -57,7 +57,7 @@ params = {
     'top_k': 20,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=10, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
