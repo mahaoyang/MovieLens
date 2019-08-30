@@ -59,6 +59,8 @@ gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=False)
+print(lgb_pred.shape)
+lgb_pred = lgb_pred.reshape((-1, 1))
 
 print('lr training...')
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -66,6 +68,7 @@ lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
+lgb_pred = lgb_pred.reshape((-1, 1))
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
