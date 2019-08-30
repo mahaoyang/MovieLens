@@ -49,7 +49,7 @@ params = {
     'objective': 'binary',  # 目标函数
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
-    'num_leaves': 18,  # 叶子节点数
+    'num_leaves': 10,  # 叶子节点数
     'learning_rate': 0.1,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
@@ -57,7 +57,7 @@ params = {
     'top_k': 20,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=3000, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
