@@ -26,7 +26,7 @@ movies_genres.columns = list(genres.keys())
 movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
+# ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 for i in ratings.columns:
@@ -44,11 +44,16 @@ lgb_test = lgb.Dataset(x_test, y_test)
 params = {
     'task': 'train',
     'boosting_type': 'gbdt',  # 设置提升类型
-    'objective': 'binary',  # 目标函数
+
+    # 'objective': 'binary',  # 目标函数
+    # 'metric': {'binary_logloss'},  # 评估函数
+
+    'objective': 'multiclass',  # 目标函数
+    'num_class': 5,
+    'metric': {'multi_logloss'},  # 评估函数
+
     'scale_pos_weight ': 1000,
     'max_delta_step ': 0.9,
-    # 'num_class': 2,
-    'metric': {'binary_logloss'},  # 评估函数
     'num_leaves': 500,  # 叶子节点数
     'max_depth': 20,
     # 'max_bin': 100,
@@ -64,7 +69,8 @@ gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=False)
-lgb_pred = lgb_pred.reshape((-1, 1))
+# binary classify reshape
+# lgb_pred = lgb_pred.reshape((-1, 1))
 
 print('lr training...')
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -72,7 +78,8 @@ lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=False)
-lgb_pred = lgb_pred.reshape((-1, 1))
+# binary classify reshape
+# lgb_pred = lgb_pred.reshape((-1, 1))
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
 print(y_pred.tolist())
