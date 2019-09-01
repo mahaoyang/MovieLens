@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
-from sklearn.metrics import accuracy_score, f1_score, mean_squared_error
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import LogisticRegressionCV
 
 from lgb_util import *
@@ -71,6 +71,7 @@ print(lgb_pred.shape)
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
 print(y_pred.tolist())
+print('MAE is ', mean_absolute_error(y_test.values.tolist(), y_pred.tolist()))
 print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))

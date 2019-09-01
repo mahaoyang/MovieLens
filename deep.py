@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
-from sklearn.metrics import accuracy_score, f1_score, mean_squared_error
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import LogisticRegressionCV
 from keras import losses
 from deepctr.models import *
@@ -82,6 +82,7 @@ deep_pred = model.predict(feat, batch_size=10240)
 y_pred = lr_cv.predict(deep_pred.tolist())
 
 print(y_pred.tolist())
+print('MAE is ', mean_absolute_error(y_test.values.tolist(), y_pred.tolist()))
 print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
