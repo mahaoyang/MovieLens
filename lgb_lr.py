@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error
 from sklearn.linear_model import LogisticRegressionCV
 
 from lgb_util import *
@@ -46,12 +47,12 @@ params = {
     'objective': 'binary',  # 目标函数
     # 'num_class': 2,
     'metric': {'binary_logloss'},  # 评估函数
-    'num_leaves': 36,  # 叶子节点数
-    'learning_rate': 0.9,  # 学习速率
+    'num_leaves': 100,  # 叶子节点数
+    'learning_rate': 0.5,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
     'bagging_freq': 10,  # k 意味着每 k 次迭代执行bagging
-    'top_k': 20,
+    'top_k': 10,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
 gbm = lgb.train(params, lgb_train, num_boost_round=10, valid_sets=lgb_test, early_stopping_rounds=10)
@@ -69,5 +70,7 @@ lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 print(lgb_pred.shape)
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
+print(y_pred.tolist())
+print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))

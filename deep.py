@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error
 from sklearn.linear_model import LogisticRegressionCV
 from keras import losses
 from deepctr.models import *
@@ -61,7 +62,7 @@ print('start training...')
 # y_train = y_train.reset_index(drop=True)
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
-model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
+model = xDeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
                     batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
@@ -81,5 +82,6 @@ deep_pred = model.predict(feat, batch_size=10240)
 y_pred = lr_cv.predict(deep_pred.tolist())
 
 print(y_pred.tolist())
+print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
