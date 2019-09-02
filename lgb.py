@@ -30,10 +30,11 @@ ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 for i in ratings.columns:
-    ratings[i] = OneHotEncoder().fit_transform(ratings[i])
+    ratings[i] = LabelEncoder().fit_transform(ratings[i])
 
 print('data processing...')
 x = ratings.drop(columns='rating')
+x = OneHotEncoder().fit_transform(x)
 y = ratings['rating']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
