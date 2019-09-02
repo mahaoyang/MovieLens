@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder,OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
@@ -25,6 +25,7 @@ movies_genres = pd.DataFrame(movies['genres'].map(lambda x: trans_genres(x, genr
 movies_genres.columns = list(genres.keys())
 movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
+users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
@@ -33,10 +34,10 @@ for i in ratings.columns:
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
 
 print('data processing...')
-x = ratings.drop(columns='rating')
+X = ratings.drop(columns='rating')
 # x = OneHotEncoder().fit_transform(x)
-y = ratings['rating']
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
+Y = ratings['rating']
+x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=321)
 
 print('start training...')
 lgb_train = lgb.Dataset(x_train, y_train)
