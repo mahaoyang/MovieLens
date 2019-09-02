@@ -29,7 +29,7 @@ movies_genres.columns = list(genres.keys())
 movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
+# ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
 for i in ratings.columns:
@@ -62,10 +62,11 @@ print('start training...')
 # y_train = y_train.reset_index(drop=True)
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
-model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
+# model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
+model = DeepFM(linear_feature_columns, dnn_feature_columns, task='regression')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=100, verbose=2, validation_split=0.2, )
 
 deep_pred = model.predict(train_model_input, batch_size=20480)
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=221)
@@ -85,4 +86,4 @@ print(y_pred.tolist())
 print('MAE is ', mean_absolute_error(y_test.values.tolist(), y_pred.tolist()))
 print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
-print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
+# print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))

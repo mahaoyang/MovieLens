@@ -48,9 +48,12 @@ params = {
     # 'objective': 'binary',  # 目标函数
     # 'metric': {'binary_logloss'},  # 评估函数
 
-    'objective': 'multiclass',  # 目标函数
-    'num_class': 5,
-    'metric': {'multi_logloss'},  # 评估函数
+    # 'objective': 'multiclass',  # 目标函数
+    # 'num_class': 5,
+    # 'metric': {'multi_logloss'},  # 评估函数
+
+    'objective': 'regression',  # 目标函数
+    'metric': {'l2'},  # 评估函数
 
     'scale_pos_weight ': 1000,
     'max_delta_step ': 0.9,
@@ -61,7 +64,7 @@ params = {
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
     'bagging_freq': 10,  # k 意味着每 k 次迭代执行bagging
-    'top_k': 10,
+    'top_k': 30,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
 gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
@@ -69,8 +72,8 @@ gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=False)
-# binary classify reshape
-# lgb_pred = lgb_pred.reshape((-1, 1))
+# binary classify & regression reshape
+lgb_pred = lgb_pred.reshape((-1, 1))
 
 print('lr training...')
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -78,12 +81,12 @@ lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=False)
-# binary classify reshape
-# lgb_pred = lgb_pred.reshape((-1, 1))
+# binary classify & regression reshape
+lgb_pred = lgb_pred.reshape((-1, 1))
 y_pred = lr_cv.predict(lgb_pred.tolist())
 
 print(y_pred.tolist())
 print('MAE is ', mean_absolute_error(y_test.values.tolist(), y_pred.tolist()))
 print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
 print('accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
-print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
+# print('f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
