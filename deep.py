@@ -63,10 +63,10 @@ print('start training...')
 
 train_model_input = [x_train[name] for name in fixlen_feature_names]
 # model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
-model = DeepFM(linear_feature_columns, dnn_feature_columns, task='regression')
+model = MLR(linear_feature_columns, dnn_feature_columns, task='regression')
 model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=20480, epochs=100, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
 
 deep_pred = model.predict(train_model_input, batch_size=20480)
 lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=221)
