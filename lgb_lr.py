@@ -40,7 +40,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_
 print('start training...')
 lgb_train = lgb.Dataset(x_train, y_train)
 lgb_test = lgb.Dataset(x_test, y_test)
-num_leaves = 50
+num_leaves = 600
 params = {
     'task': 'train',
     'boosting_type': 'gbdt',  # 设置提升类型
@@ -60,14 +60,14 @@ params = {
     'num_leaves': num_leaves,  # 叶子节点数
     'max_depth': 20,
     # 'max_bin': 100,
-    'learning_rate': 0.1,  # 学习速率
+    'learning_rate': 1,  # 学习速率
     'feature_fraction': 0.9,  # 建树的特征选择比例
     'bagging_fraction': 0.8,  # 建树的样本采样比例
     'bagging_freq': 10,  # k 意味着每 k 次迭代执行bagging
     'top_k': 30,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=5, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=3, valid_sets=lgb_test, early_stopping_rounds=5)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
@@ -81,7 +81,7 @@ for i in range(0, len(lgb_pred)):
     transformed_training_matrix[i][temp] += 1
 
 print('lr training...')
-lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
+lr_cv = LogisticRegressionCV(Cs=10, cv=3, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 lr_cv.fit(transformed_training_matrix, y_train.values.tolist())
 
 print('start predicting...')
