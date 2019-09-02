@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder,OneHotEncoder
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
@@ -30,7 +30,7 @@ ratings = ratings[['user_id', 'movie_id', 'rating']]
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 for i in ratings.columns:
-    ratings[i] = LabelEncoder().fit_transform(ratings[i])
+    ratings[i] = OneHotEncoder().fit_transform(ratings[i])
 
 print('data processing...')
 x = ratings.drop(columns='rating')
