@@ -12,7 +12,7 @@ from lgb_util import *
 
 print('loading data...')
 movies = pd.read_csv('data/movies.dat', sep='::', names=['movie_id', 'title', 'genres'])
-ratings = pd.read_csv('data/ratings.dat', sep='::', names=['user_id', 'movie_id', 'rating', 'timestamp'])
+ratings = pd.read_csv('data/ratings.dat', sep='::', names=['user_id', 'movie_id', 'rating', 'timestamp'])[:1000]
 users = pd.read_csv('data/users.dat', sep='::', names=['user_id', 'gender', 'age', 'occupation', 'Zip-code'])
 
 print('feature processing...')
@@ -34,7 +34,7 @@ for i in ratings.columns:
 
 print('data processing...')
 x = ratings.drop(columns='rating')
-x = pd.DataFrame(OneHotEncoder().fit_transform(x).data.tolist())
+x = pd.DataFrame(OneHotEncoder().fit_transform(x).A.tolist())
 y = ratings['rating']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
