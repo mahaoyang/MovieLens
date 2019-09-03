@@ -34,7 +34,7 @@ for i in ratings.columns:
 
 print('data processing...')
 x = ratings.drop(columns='rating')
-x = OneHotEncoder().fit_transform(x)
+x = pd.DataFrame(OneHotEncoder().fit_transform(x).data.tolist())
 y = ratings['rating']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
