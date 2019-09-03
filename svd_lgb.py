@@ -37,7 +37,7 @@ if not os.path.exists('feature/svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVDpp(n_factors=50, n_epochs=50, random_state=321)
+    svd = SVDpp(n_factors=50, n_epochs=200, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
