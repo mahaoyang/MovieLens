@@ -32,7 +32,7 @@ movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
+# ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 if not os.path.exists('svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
