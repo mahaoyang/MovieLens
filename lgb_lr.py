@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
@@ -79,6 +79,7 @@ transformed_training_matrix = np.zeros([len(lgb_pred), len(lgb_pred[0]) * num_le
 for i in range(0, len(lgb_pred)):
     temp = np.arange(len(lgb_pred[0])) * num_leaves + np.array(lgb_pred[i])
     transformed_training_matrix[i][temp] += 1
+transformed_training_matrix = pd.concat([x_train, pd.DataFrame(transformed_training_matrix.tolist())], axis=1)
 
 print('lr training...')
 lr_cv = LogisticRegressionCV(Cs=10, cv=3, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -92,6 +93,7 @@ transformed_training_matrix = np.zeros([len(lgb_pred), len(lgb_pred[0]) * num_le
 for i in range(0, len(lgb_pred)):
     temp = np.arange(len(lgb_pred[0])) * num_leaves + np.array(lgb_pred[i])
     transformed_training_matrix[i][temp] += 1
+transformed_training_matrix = pd.concat([x_test, pd.DataFrame(transformed_training_matrix.tolist())], axis=1)
 
 print(lgb_pred.shape)
 y_pred = lr_cv.predict(transformed_training_matrix)
