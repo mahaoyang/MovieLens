@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
+import os
+import pickle
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -30,14 +32,24 @@ movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-reader = Reader()
-data = Dataset.load_from_df(ratings, reader=reader)
-train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-svd = SVDpp(n_factors=30, n_epochs=30)
-svd.fit(train)
-svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())], axis=1)
-svd_fi = pd.concat([ratings['movie_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.qi.tolist())],
-                   axis=1)
+if not os.path.exists('svd_fi.pkl'):
+    reader = Reader()
+    data = Dataset.load_from_df(ratings, reader=reader)
+    train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
+    svd = SVDpp(n_factors=30, n_epochs=30)
+    svd.fit(train)
+    svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())], axis=1)
+    svd_fi = pd.concat([ratings['movie_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.qi.tolist())],
+                       axis=1)
+    with open('svd_fu.pkl', 'wb') as f:
+        pickle.dump(svd_fu, f)
+    with open('svd_fi.pkl', 'wb') as f:
+        pickle.dump(svd_fi, f)
+else:
+    with open('svd_fu.pkl', 'wb') as f:
+        svd_fu = pickle.load( f)
+    with open('svd_fi.pkl', 'wb') as f:
+        svd_fi = pickle.load(f)
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
