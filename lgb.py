@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.decomposition import TruncatedSVD
 
 from lgb_util import *
 
