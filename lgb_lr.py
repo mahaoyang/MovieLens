@@ -75,13 +75,10 @@ print('lgb predicting...')
 lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=True)
 
 print('Writing transformed training data')
-transformed_training_matrix = np.zeros([len(lgb_pred), len(lgb_pred[0]) * num_leaves],
-                                       dtype=np.int64)  # N * num_tress * num_leafs
-for i in range(0, len(lgb_pred)):
-    temp = np.arange(len(lgb_pred[0])) * num_leaves + np.array(lgb_pred[i])
-    transformed_training_matrix[i][temp] += 1
-transformed_training_matrix = pd.concat(
-    [x_train.reset_index(drop=True), pd.DataFrame(transformed_training_matrix.tolist())], axis=1)
+ohe = OneHotEncoder()
+transformed_training_matrix = pd.DataFrame(ohe.fit_transform(pd.DataFrame(lgb_pred.tolist())).A.tolist()).reset_index(
+    drop=True)
+transformed_training_matrix = pd.concat([x_train.reset_index(drop=True), transformed_training_matrix], axis=1)
 
 print('lr training...')
 lr_cv = LogisticRegressionCV(Cs=10, cv=3, penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
@@ -90,13 +87,9 @@ lr_cv.fit(transformed_training_matrix, y_train.values.tolist())
 print('start predicting...')
 lgb_pred = gbm.predict(x_test, num_iteration=gbm.best_iteration, pred_leaf=True)
 print('Writing transformed training data')
-transformed_training_matrix = np.zeros([len(lgb_pred), len(lgb_pred[0]) * num_leaves],
-                                       dtype=np.int64)  # N * num_tress * num_leafs
-for i in range(0, len(lgb_pred)):
-    temp = np.arange(len(lgb_pred[0])) * num_leaves + np.array(lgb_pred[i])
-    transformed_training_matrix[i][temp] += 1
-transformed_training_matrix = pd.concat(
-    [x_test.reset_index(drop=True), pd.DataFrame(transformed_training_matrix.tolist())], axis=1)
+transformed_training_matrix = pd.DataFrame(ohe.fit_transform(pd.DataFrame(lgb_pred.tolist())).A.tolist()).reset_index(
+    drop=True)
+transformed_training_matrix = pd.concat([x_test.reset_index(drop=True), transformed_training_matrix], axis=1)
 
 print(lgb_pred.shape)
 y_pred = lr_cv.predict(transformed_training_matrix)
