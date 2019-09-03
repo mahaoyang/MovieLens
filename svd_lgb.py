@@ -32,6 +32,7 @@ movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
+ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 if not os.path.exists('svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
@@ -47,9 +48,9 @@ if not os.path.exists('svd_fi.pkl'):
     with open('svd_fi.pkl', 'wb') as f:
         pickle.dump(svd_fi, f)
 else:
-    with open('svd_fu.pkl', 'wb') as f:
+    with open('svd_fu.pkl', 'rb') as f:
         svd_fu = pickle.load(f)
-    with open('svd_fi.pkl', 'wb') as f:
+    with open('svd_fi.pkl', 'rb') as f:
         svd_fi = pickle.load(f)
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
