@@ -91,7 +91,7 @@ print('Writing transformed training data')
 # transformed_training_matrix = pd.DataFrame(ohe.fit_transform(pd.DataFrame(lgb_pred.tolist())).A.tolist()).reset_index(
 #     drop=True)
 transformed_training_matrix = ohe.transform(pd.DataFrame(lgb_pred.tolist())).A
-transformed_training_matrix = np.concatenate([x_train.values, transformed_training_matrix], axis=1)
+transformed_training_matrix = np.concatenate([x_test.values, transformed_training_matrix], axis=1)
 
 print(lgb_pred.shape)
 y_pred = lr_cv.predict(transformed_training_matrix)
