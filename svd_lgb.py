@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
 import os
+from datetime import datetime
 import pickle
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import LogisticRegressionCV
-from surprise import SVDpp, Dataset, Reader, NormalPredictor, accuracy
+from surprise import SVDpp, Dataset, Reader, NormalPredictor, accuracy, SVD
 from surprise.model_selection import cross_validate
 from surprise.model_selection import train_test_split as surprise_train_test_split
 
@@ -32,25 +33,25 @@ movies['publish_years'] = movies['title'].map(lambda x: trans_publish_years(x))
 movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(columns=['genres'])
 users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
-ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
-if not os.path.exists('feature/svd_fi.pkl'):
+# ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
+if not os.path.exists('feature/raw_svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVDpp(n_factors=50, n_epochs=200, random_state=321)
+    svd = SVD(n_factors=500, n_epochs=5000, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
     svd_fi = pd.concat([ratings['movie_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.qi.tolist())],
                        axis=1)
-    with open('feature/svd_fu.pkl', 'wb') as f:
+    with open('feature/raw_svd_fu.pkl', 'wb') as f:
         pickle.dump(svd_fu, f)
-    with open('feature/svd_fi.pkl', 'wb') as f:
+    with open('feature/raw_svd_fi.pkl', 'wb') as f:
         pickle.dump(svd_fi, f)
 else:
-    with open('feature/svd_fu.pkl', 'rb') as f:
+    with open('feature/raw_svd_fu.pkl', 'rb') as f:
         svd_fu = pickle.load(f)
-    with open('feature/svd_fi.pkl', 'rb') as f:
+    with open('feature/raw_svd_fi.pkl', 'rb') as f:
         svd_fi = pickle.load(f)
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
