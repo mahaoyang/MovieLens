@@ -35,11 +35,11 @@ movies = pd.concat([movies, movies_genres], axis=1, ignore_index=False).drop(col
 users['age'] = users['age'].map(lambda x: 0 if x <= 6 else x)
 ratings = ratings[['user_id', 'movie_id', 'rating']]
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
-if not os.path.exists('feature/raw_svd_fi.pkl'):
+if not os.path.exists('feature/svd_pp_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVD(n_factors=50, n_epochs=20, random_state=321)
+    svd = SVDpp(n_factors=50, n_epochs=10, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
@@ -48,23 +48,23 @@ if not os.path.exists('feature/raw_svd_fi.pkl'):
     train, test = surprise_train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
     svd_pred = svd.test(test)
     svd_pred = pd.DataFrame([i.r_ui for i in svd_pred])
-    with open('feature/raw_svd_fu.pkl', 'wb') as f:
+    with open('feature/svd_pp_fu.pkl', 'wb') as f:
         pickle.dump(svd_fu, f)
-    with open('feature/raw_svd_fi.pkl', 'wb') as f:
+    with open('feature/svd_pp_fi.pkl', 'wb') as f:
         pickle.dump(svd_fi, f)
-    with open('feature/raw_svd_pred.pkl', 'wb') as f:
+    with open('feature/svd_pp_pred.pkl', 'wb') as f:
         pickle.dump(svd_pred, f)
 else:
-    with open('feature/raw_svd_fu.pkl', 'rb') as f:
+    with open('feature/svd_pp_fu.pkl', 'rb') as f:
         svd_fu = pickle.load(f)
-    with open('feature/raw_svd_fi.pkl', 'rb') as f:
+    with open('feature/svd_pp_fi.pkl', 'rb') as f:
         svd_fi = pickle.load(f)
-    with open('feature/raw_svd_pred.pkl', 'rb') as f:
+    with open('feature/svd_pp_pred.pkl', 'rb') as f:
         svd_pred = pickle.load(f)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
-# ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
-# ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
+ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
+ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
 ratings = pd.concat([ratings, svd_pred], axis=1)
 for i in ratings.columns[:27]:
     print(i)
