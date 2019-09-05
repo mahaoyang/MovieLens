@@ -17,6 +17,7 @@ from surprise.model_selection import train_test_split as surprise_train_test_spl
 from lgb_util import *
 
 print('loading data...')
+print(datetime.now())
 movies = pd.read_csv('data/movies.dat', sep='::', names=['movie_id', 'title', 'genres'])
 ratings = pd.read_csv('data/ratings.dat', sep='::', names=['user_id', 'movie_id', 'rating', 'timestamp'])
 users = pd.read_csv('data/users.dat', sep='::', names=['user_id', 'gender', 'age', 'occupation', 'Zip-code'])
@@ -38,7 +39,7 @@ if not os.path.exists('feature/raw_svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVD(n_factors=500, n_epochs=5000, random_state=321)
+    svd = SVD(n_factors=500, n_epochs=100, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
@@ -60,6 +61,7 @@ ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
 for i in ratings.columns:
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
+print(datetime.now())
 
 print('data processing...')
 X = ratings.drop(columns='rating')
