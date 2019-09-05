@@ -66,7 +66,7 @@ ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
-ratings = pd.concat([ratings, svd_pred])
+ratings = pd.concat([ratings, svd_pred], axis=1)
 for i in ratings.columns:
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
 print(datetime.now())

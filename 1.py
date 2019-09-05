@@ -20,6 +20,8 @@ svd.fit(train)
 train, test = train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
 X = svd.test(test)
 x = [i.r_ui for i in X]
+x = pd.DataFrame(x)
+x = pd.concat([ratings, x], axis=1)
 accuracy.mae(X)
 accuracy.rmse(X)
 
