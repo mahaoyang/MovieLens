@@ -45,7 +45,7 @@ if not os.path.exists('feature/raw_svd_fi.pkl'):
                        axis=1)
     svd_fi = pd.concat([ratings['movie_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.qi.tolist())],
                        axis=1)
-    train, test = train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
+    train, test = surprise_train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
     svd_pred = svd.test(test)
     svd_pred = pd.DataFrame([i.r_ui for i in svd_pred])
     with open('feature/raw_svd_fu.pkl', 'wb') as f:
@@ -107,7 +107,7 @@ params = {
     'top_k': 30,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=10000, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=2000, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
