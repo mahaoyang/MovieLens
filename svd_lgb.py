@@ -39,7 +39,7 @@ if not os.path.exists('feature/raw_svd_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVD(n_factors=500, n_epochs=100, random_state=321)
+    svd = SVD(n_factors=300, n_epochs=300, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
@@ -63,11 +63,12 @@ else:
         svd_pred = pickle.load(f)
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
-ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
+ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
 ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
 ratings = pd.concat([ratings, svd_pred], axis=1)
-for i in ratings.columns:
+for i in ratings.columns[:27]:
+    print(i)
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
 print(datetime.now())
 
@@ -107,7 +108,7 @@ params = {
     'top_k': 30,
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 }
-gbm = lgb.train(params, lgb_train, num_boost_round=2000, valid_sets=lgb_test, early_stopping_rounds=10)
+gbm = lgb.train(params, lgb_train, num_boost_round=200, valid_sets=lgb_test, early_stopping_rounds=10)
 gbm.save_model('lgb_model.txt')
 
 print('lgb predicting...')
