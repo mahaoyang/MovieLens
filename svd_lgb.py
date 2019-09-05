@@ -45,20 +45,28 @@ if not os.path.exists('feature/raw_svd_fi.pkl'):
                        axis=1)
     svd_fi = pd.concat([ratings['movie_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.qi.tolist())],
                        axis=1)
+    train, test = train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
+    svd_pred = svd.test(test)
+    svd_pred = pd.DataFrame([i.r_ui for i in svd_pred])
     with open('feature/raw_svd_fu.pkl', 'wb') as f:
         pickle.dump(svd_fu, f)
     with open('feature/raw_svd_fi.pkl', 'wb') as f:
         pickle.dump(svd_fi, f)
+    with open('feature/raw_svd_pred.pkl', 'wb') as f:
+        pickle.dump(svd_pred, f)
 else:
     with open('feature/raw_svd_fu.pkl', 'rb') as f:
         svd_fu = pickle.load(f)
     with open('feature/raw_svd_fi.pkl', 'rb') as f:
         svd_fi = pickle.load(f)
+    with open('feature/raw_svd_pred.pkl', 'rb') as f:
+        svd_pred = pickle.load(f)
 # ratings['rating'] = ratings['rating'].map(lambda x: 0 if x < 4 else 1)
 ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, svd_fu, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id')
 ratings = pd.merge(ratings, svd_fi, how='left', on='movie_id')
+ratings = pd.concat([ratings, svd_pred])
 for i in ratings.columns:
     ratings[i] = LabelEncoder().fit_transform(ratings[i])
 print(datetime.now())
