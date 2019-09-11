@@ -39,7 +39,7 @@ if not os.path.exists('feature/svd_pp_fi.pkl'):
     reader = Reader()
     data = Dataset.load_from_df(ratings, reader=reader)
     train, test = surprise_train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-    svd = SVDpp(n_factors=200, n_epochs=10, random_state=321)
+    svd = SVDpp(n_factors=20, n_epochs=5, random_state=321)
     svd.fit(train)
     svd_fu = pd.concat([ratings['user_id'].drop_duplicates().reset_index(drop=True), pd.DataFrame(svd.pu.tolist())],
                        axis=1)
@@ -116,7 +116,7 @@ lgb_pred = gbm.predict(x_train, num_iteration=gbm.best_iteration, pred_leaf=Fals
 lgb_pred = lgb_pred.reshape((-1, 1))
 
 print('lr training...')
-lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=123)
+lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=321)
 lr_cv.fit(lgb_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
