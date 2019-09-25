@@ -1,29 +1,29 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
-import numpy as np
-import pandas as pd
-import torch
-from torch.autograd import Variable
-
-from surprise import SVDpp, Dataset, Reader, NormalPredictor, accuracy, SVD
-
-from surprise.model_selection import cross_validate, train_test_split
-
-ratings = pd.read_csv('data/ratings.dat', sep='::', names=['user_id', 'movie_id', 'rating', 'timestamp'])[:1000]
-ratings = ratings[['user_id', 'movie_id', 'rating']]
-reader = Reader(line_format='user item rating', sep='::')
-data = Dataset.load_from_df(ratings, reader=reader)
-# data = cross_validate(NormalPredictor(), data, cv=2)
-train, test = train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
-svd = SVD(n_factors=30, n_epochs=100)
-svd.fit(train)
-train, test = train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
-X = svd.test(test)
-x = [i.r_ui for i in X]
-x = pd.DataFrame(x)
-x = pd.concat([ratings, x], axis=1)
-accuracy.mae(X)
-accuracy.rmse(X)
+# import numpy as np
+# import pandas as pd
+# import torch
+# from torch.autograd import Variable
+#
+# from surprise import SVDpp, Dataset, Reader, NormalPredictor, accuracy, SVD
+#
+# from surprise.model_selection import cross_validate, train_test_split
+#
+# ratings = pd.read_csv('data/ratings.dat', sep='::', names=['user_id', 'movie_id', 'rating', 'timestamp'])[:1000]
+# ratings = ratings[['user_id', 'movie_id', 'rating']]
+# reader = Reader(line_format='user item rating', sep='::')
+# data = Dataset.load_from_df(ratings, reader=reader)
+# # data = cross_validate(NormalPredictor(), data, cv=2)
+# train, test = train_test_split(data, test_size=0, train_size=1.0, shuffle=False)
+# svd = SVD(n_factors=30, n_epochs=100)
+# svd.fit(train)
+# train, test = train_test_split(data, test_size=1.0, train_size=0, shuffle=False)
+# X = svd.test(test)
+# x = [i.r_ui for i in X]
+# x = pd.DataFrame(x)
+# x = pd.concat([ratings, x], axis=1)
+# accuracy.mae(X)
+# accuracy.rmse(X)
 
 # import numpy as np
 # import tensorflow as tf
@@ -75,3 +75,24 @@ accuracy.rmse(X)
 # print(U.shape)
 # print(sigma.shape)
 # print(Vt.shape)
+
+import time
+import threading
+import requests
+
+
+def get():
+    time.sleep(1)
+    for i in range(1000):
+        requests.get('http://127.0.0.1:8000/')
+        print(i)
+
+
+for i in range(100):
+    threading.Thread(target=get).start()
+
+# from requests.auth import HTTPDigestAuth
+#
+# r = requests.get(url='http://es-cn-0pp16iw910008stel.public.elasticsearch.aliyuncs.com:9200/es_item_index_test', auth=('elastic', 'Zhuangdian!@#'))
+# print(r)
+# print(r.text)
