@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
-import lightgbm as lgb
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import LogisticRegressionCV
 from keras import losses
+from keras import layers
 from deepctr.models import *
-from deepctr.inputs import SparseFeat, get_fixlen_feature_names, DenseFeat
+from deepctr.inputs import SparseFeat, get_feature_names, DenseFeat
 
 from lgb_util import *
 
@@ -51,7 +51,7 @@ fixlen_feature_columns = [SparseFeat(feat, x[feat].nunique())
                           for feat in x.columns]
 linear_feature_columns = fixlen_feature_columns
 dnn_feature_columns = fixlen_feature_columns
-fixlen_feature_names = get_fixlen_feature_names(linear_feature_columns + dnn_feature_columns)
+fixlen_feature_names = get_feature_names(linear_feature_columns + dnn_feature_columns)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=321)
 
 print('start training...')
@@ -64,13 +64,14 @@ print('start training...')
 train_model_input = [x_train[name] for name in fixlen_feature_names]
 # model = DeepFM(linear_feature_columns, dnn_feature_columns, task='binary')
 model = DeepFM(linear_feature_columns, dnn_feature_columns, task='regression')
-model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'], )
+sf = layers.Softmax()
+model.compile("adam", loss=losses.mae, metrics=['accuracy', 'mse'])
 history = model.fit(train_model_input, y_train.values,
-                    batch_size=20480, epochs=100, verbose=2, validation_split=0.2, )
+                    batch_size=20480, epochs=10, verbose=2, validation_split=0.2, )
 
-deep_pred = model.predict(train_model_input, batch_size=20480)
-lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=221)
-lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
+# deep_pred = model.predict(train_model_input, batch_size=20480)
+# lr_cv = LogisticRegressionCV(Cs=10, cv='warn', penalty='l2', tol=1e-4, max_iter=10, n_jobs=1, random_state=221)
+# lr_cv.fit(deep_pred.tolist(), y_train.values.tolist())
 
 print('start predicting...')
 # y_pred = lr_cv.predict(lgb_pred.tolist())
@@ -80,10 +81,11 @@ print('start predicting...')
 x_test.columns = [str(i) for i in range(len(x_test.columns))]
 feat = [x_test[name] for name in fixlen_feature_names]
 deep_pred = model.predict(feat, batch_size=10240)
-y_pred = lr_cv.predict(deep_pred.tolist())
+# y_pred = lr_cv.predict(deep_pred.tolist())
+y_pred = deep_pred
 
 print(y_pred.tolist())
 print('MAE is ', mean_absolute_error(y_test.values.tolist(), y_pred.tolist()))
 print('RMSE is ', np.sqrt(mean_squared_error(y_test.values.tolist(), y_pred.tolist())))
-print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
+# print('The final accuracy is ', accuracy_score(y_test.values.tolist(), y_pred.tolist()))
 # print('The final f1 score is ', f1_score(y_test.values.tolist(), y_pred.tolist()))
