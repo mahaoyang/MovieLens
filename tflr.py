@@ -24,18 +24,19 @@ ratings = pd.merge(ratings, users, how='left', on='user_id')
 ratings = pd.merge(ratings, movies, how='left', on='movie_id').fillna(0)
 
 # This returns a tensor
-inputs = layers.Input(shape=(3,))
+inputs = layers.Input(shape=(3,), name='input_3')
 
 # a layer instance is callable on a tensor, and returns a tensor
-output_1 = layers.Dense(2, activation='sigmoid')(inputs)
-output_2 = layers.Dense(2, activation='sigmoid')(output_1)
-output_3 = layers.Dense(2, activation='sigmoid')(output_2)
-cat = layers.concatenate([output_1, output_2, output_3])
-predictions = layers.Dense(2, activation='softmax')(cat)
+output_1 = layers.Dense(2, activation='sigmoid', name='lr')(inputs)
+# output_2 = layers.Dense(2, activation='sigmoid')(output_1)
+# output_3 = layers.Dense(2, activation='sigmoid')(output_2)
+# cat = layers.concatenate([output_1, output_2, output_3])
+# predictions = layers.Dense(2, activation='softmax')(cat)
+# predictions = layers.Dense(2, activation='softmax', name='predict')(output_1)
 
 # This creates a model that includes
 # the Input layer and three Dense layers
-model = models.Model(inputs=inputs, outputs=predictions)
+model = models.Model(inputs=inputs, outputs=output_1)
 model.compile(optimizer='rmsprop',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
@@ -44,6 +45,7 @@ labels = ratings['rating'].map(lambda x: 1 if int(x) > 2 else 0)[-200:].values
 model.fit(data, to_categorical(labels), epochs=10, batch_size=500)  # starts training
 print(data[-10:].tolist())
 print(model.predict(data[-10:]).tolist())
+
 
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
     """
@@ -73,10 +75,50 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
                                                       output_names, freeze_var_names)
         return frozen_graph
 
+
 # save keras model as tf pb files ===============
 from keras import backend as K
+
 wkdir = 'C:/Users/99263/PycharmProjects/MovieLens'
 pb_filename = 'lr.pb'
 frozen_graph = freeze_session(K.get_session(),
                               output_names=[out.op.name for out in model.outputs])
 tf.train.write_graph(frozen_graph, wkdir, pb_filename, as_text=False)
+
+
+def get_all_layernames():
+    import os
+    """get all layers name"""
+    pb_file_path = os.path.join('C:/Users/99263/PycharmProjects/MovieLens', 'lr.pb')
+
+    from tensorflow.python.platform import gfile
+
+    sess = tf.Session()
+    # with gfile.FastGFile(pb_file_path + 'model.pb', 'rb') as f:
+    with gfile.FastGFile(pb_file_path, 'rb') as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+        sess.graph.as_default()
+        tf.import_graph_def(graph_def, name='')
+
+        tensor_name_list = [tensor.name for tensor in tf.get_default_graph().as_graph_def().node]
+        for tensor_name in tensor_name_list:
+            print(tensor_name, '\n')
+    return
+
+
+get_all_layernames()
+file = "C:/Users/99263/PycharmProjects/MovieLens/lr.pb"
+with tf.gfile.FastGFile(file, "rb") as f:
+    graph_def = tf.GraphDef()
+    graph_def.ParseFromString(f.read())
+    ele = ["input_3:0", "lr/Sigmoid:0"]
+    # ele = ["prediction_layer/Reshape:0", "age:0", "room_type:0", "source:0", "user_player_level_score:0"]
+    age, result = tf.import_graph_def(
+        graph_def, return_elements=ele)
+
+with tf.Session() as sess:
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    result = sess.run(result, feed_dict={age: [[0.5, 2, 3], [0.5, 2, 3]]})
+    print(result)

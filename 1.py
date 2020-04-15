@@ -80,19 +80,59 @@ import time
 import threading
 import requests
 
-
-def get():
-    time.sleep(1)
-    for i in range(1000):
-        requests.get('http://127.0.0.1:8000/')
-        print(i)
-
-
-for i in range(100):
-    threading.Thread(target=get).start()
+# def get():
+#     time.sleep(1)
+#     for i in range(1000):
+#         requests.get('http://127.0.0.1:8000/')
+#         print(i)
+#
+#
+# for i in range(100):
+#     threading.Thread(target=get).start()
 
 # from requests.auth import HTTPDigestAuth
 #
 # r = requests.get(url='http://es-cn-0pp16iw910008stel.public.elasticsearch.aliyuncs.com:9200/es_item_index_test', auth=('elastic', 'Zhuangdian!@#'))
 # print(r)
 # print(r.text)
+
+# from pyalink.alink import *
+# resetEnv()
+# useLocalEnv(2)
+# schema = "age bigint, workclass string, fnlwgt bigint, education string, education_num bigint, marital_status string, occupation string, relationship string, race string, sex string, capital_gain bigint, capital_loss bigint, hours_per_week bigint, native_country string, label string"
+# adult_batch = CsvSourceStreamOp() \
+#     .setFilePath("http://alink-dataset.cn-hangzhou.oss.aliyun-inc.com/csv/adult_train.csv") \
+#     .setSchemaStr(schema)
+# adult_batch.print()
+# # sample = SampleStreamOp().setRatio(0.01).linkFrom(adult_batch)
+# # sample.print(key="adult_data", refreshInterval=3)
+# StreamOperator.execute()
+# import pandas as pd
+#
+# a = [{'a': 1, 'b': 2, 'c': 3}, {'a': 1, 'b': 2, 'c': 3}, {'a': 1, 'b': 2, 'c': 3}]
+# d = pd.DataFrame(a)
+# d = d.append({'a': 0, 'c': 2}, ignore_index=True)
+# print(d)
+
+
+import socket
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.errors import KafkaError
+
+bootstrap_servers = '172.16.100.31:9092,172.16.100.29:9092,172.16.100.30:9092'
+producer = KafkaProducer(bootstrap_servers=bootstrap_servers,
+                         api_version=(0, 10),
+                         retries=5)
+topic_name = 'Topic_Live_Heartbeat_Msg'
+partitions = producer.partitions_for(topic_name)
+future = producer.send(topic_name, 'hello aliyun-kafka!')
+future.get()
+
+consumer_id = 'Gid_Real_Time_Live_Heartbeat_Msg'
+consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers,
+                         group_id=consumer_id,
+                         api_version=(0, 10))
+
+consumer.subscribe((topic_name,))
+for message in consumer:
+    print(message.topic, message.offset, message.key, message.value, message.value, message.partition)
