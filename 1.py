@@ -107,32 +107,62 @@ import requests
 # # sample = SampleStreamOp().setRatio(0.01).linkFrom(adult_batch)
 # # sample.print(key="adult_data", refreshInterval=3)
 # StreamOperator.execute()
-# import pandas as pd
+import pandas as pd
 #
 # a = [{'a': 1, 'b': 2, 'c': 3}, {'a': 1, 'b': 2, 'c': 3}, {'a': 1, 'b': 2, 'c': 3}]
 # d = pd.DataFrame(a)
 # d = d.append({'a': 0, 'c': 2}, ignore_index=True)
 # print(d)
 
-
+import json
 import socket
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import KafkaError
 
 bootstrap_servers = '172.16.100.31:9092,172.16.100.29:9092,172.16.100.30:9092'
-producer = KafkaProducer(bootstrap_servers=bootstrap_servers,
+producer = KafkaProducer(bootstrap_servers=bootstrap_servers.split(','),
                          api_version=(0, 10),
                          retries=5)
 topic_name = 'Topic_Live_Heartbeat_Msg'
+
 partitions = producer.partitions_for(topic_name)
-future = producer.send(topic_name, 'hello aliyun-kafka!')
-future.get()
+d = pd.read_csv('live_data.csv').astype('int32').to_dict('records')
+for i in d[:1]:
+    future = producer.send(topic_name, value=json.dumps(i).encode('utf-8'), key='test'.encode('utf-8'))
+    # producer.flush()
+    future.get()
 
-consumer_id = 'Gid_Real_Time_Live_Heartbeat_Msg'
-consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers,
-                         group_id=consumer_id,
-                         api_version=(0, 10))
+# consumer_id = 'Gid_Real_Time_Live_Heartbeat_Msg'
+# consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers,
+#                          group_id=consumer_id,
+#                          api_version=(0, 10))
 
-consumer.subscribe((topic_name,))
-for message in consumer:
-    print(message.topic, message.offset, message.key, message.value, message.value, message.partition)
+# class Kafka(object):
+#     def __init__(self, broker):
+#         self.broker = broker
+#
+#     def producer(self):
+#         kafka_producer = KafkaProducer(bootstrap_servers=self.broker)
+#         return kafka_producer
+#
+#     def consumer(self, topic):
+#         kcm = KafkaConsumer(topic, bootstrap_servers=self.broker)
+#         return kcm
+
+
+
+# bootstrap_servers = '172.16.100.31:9092,172.16.100.29:9092,172.16.100.30:9092'
+# topic_name = 'Topic_Live_Heartbeat_Msg'
+# consumer_id = 'Gid_Real_Time_Live_Heartbeat_Msg'
+# data = KafkaSourceStreamOp() \
+#     .setBootstrapServers(bootstrap_servers) \
+#     .setTopic(topic_name) \
+#     .setStartupMode("LATEST") \
+#     .setGroupId(consumer_id)
+# col = ['source', 'shop_authentication_type', 'shop_level', 'shop_cid_1', 'type', 'room_type', 'gender', 'user_level', 'live_if_new', 'user_player_level',
+#        'shop_fans_count', 'auction_count_1', 'label']
+# data = JsonValueStreamOp().setJsonPath(["$." + i for i in col]).setSelectedCol("message").setOutputCols(col).linkFrom(data).select(col)
+# data.print()
+# StreamOperator.execute()
+
+import tensorflow as tf

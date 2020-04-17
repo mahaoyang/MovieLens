@@ -5,6 +5,13 @@ import sys, os
 resetEnv()
 useLocalEnv(2)
 
+URL = "https://alink-release.oss-cn-beijing.aliyuncs.com/data-files/iris.csv"
+SCHEMA_STR = "sepal_length double, sepal_width double, petal_length double, petal_width double, category string";
+data = CsvSourceStreamOp().setFilePath(URL).setSchemaStr(SCHEMA_STR)
+data = data.link(FilterStreamOp().setClause("category='Iris-setosa'"))
+data.print()
+StreamOperator.execute()
+
 # schema of train data
 schemaStr = "id string, click string, dt string, C1 string, banner_pos int, site_id string, \
             site_domain string, site_category string, app_id string, app_domain string, \
@@ -93,18 +100,7 @@ predResult = FtrlPredictStreamOp(initModel) \
     .linkFrom(model, feature_pipelineModel.transform(test_stream_data))
 
 predResult.print(key="predResult", refreshInterval=30, maxLimit=20)
+StreamOperator().execute()
 
-# ftrl eval
-EvalBinaryClassStreamOp() \
-    .setLabelCol(labelColName) \
-    .setPredictionCol("pred") \
-    .setPredictionDetailCol("details") \
-    .setTimeInterval(10) \
-    .linkFrom(predResult) \
-    .link(JsonValueStreamOp() \
-          .setSelectedCol("Data") \
-          .setReservedCols(["Statistics"]) \
-          .setOutputCols(["Accuracy", "AUC", "ConfusionMatrix"]) \
-          .setJsonPath(["$.Accuracy", "$.AUC", "$.ConfusionMatrix"])) \
-    .print(key="evaluation", refreshInterval=30, maxLimit=20)
-StreamOperator.execute()
+
+
